@@ -100,12 +100,13 @@ public class QRLogParser {
 			int captured = Integer.parseInt(parts[2]);
 			int decoded = Integer.parseInt(parts[3]);
 			int matched = Integer.parseInt(parts[4]);
+			int missed = Integer.parseInt(parts[5]);
 
 			builder.setLength(0);
 			builder.append(bytes).append(",").append(rate).append(",")
 					.append(level).append(",")
 					.append((float) decoded / (float) captured)
-					.append(",").append((float) matched / (float) sent)
+					.append(",").append((float) matched / (float) (matched + missed))
 					.append("\n");
 			try {
 				writer.write(builder.toString());
