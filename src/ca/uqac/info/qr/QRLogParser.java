@@ -76,6 +76,13 @@ public class QRLogParser {
 
 	public static void parseLogs(File[] files, FileWriter writer) {
 		StringBuilder builder = new StringBuilder();
+		try {
+			writer.write("size per frame,frames per second,error correction level,"
+						+ "sent message,captured message,decoded message,matched message,missed message,"
+						+ "decoded ratio,matched ratio\n");
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 		for (File file : files) {
 			if (file.isDirectory()) {
 				continue;
@@ -102,9 +109,14 @@ public class QRLogParser {
 			int matched = Integer.parseInt(parts[4]);
 			int missed = Integer.parseInt(parts[5]);
 
-			builder.setLength(0);
-			builder.append(bytes).append(",").append(rate).append(",")
+			builder.setLength(0);	
+			builder.append(bytes).append(",").append(rate).append("(x1),")
 					.append(level).append(",")
+					.append(sent).append(",")
+					.append(captured).append(",")
+					.append(decoded).append(",")
+					.append(matched).append(",")
+					.append(missed).append(",")
 					.append((float) decoded / (float) captured)
 					.append(",").append((float) matched / (float) (matched + missed))
 					.append("\n");
