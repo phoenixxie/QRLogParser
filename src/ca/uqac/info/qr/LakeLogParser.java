@@ -39,12 +39,12 @@ public class LakeLogParser {
     StringBuilder builder = new StringBuilder();
     try {
       writer
-          .write("config size,real max size,rate,sent times,"
-              + "num of samples,"
+          .write("config_size,cps,sent_times,"
+              + "num_of_samples,actual_max_frame_size,regenerate_times,"
               + "times(max),times(min),"
               + "times(median),times(mean),times(SD),"
-              + "time spent(max),time spent(min),"
-              + "time spent(median),time spent(mean),time spent(SD)\n");
+              + "time_spent(max),time_spent(min),"
+              + "time_spent(median),time_spent(mean),time_spent(SD)\n");
     } catch (IOException e1) {
       e1.printStackTrace();
     }
@@ -72,7 +72,8 @@ public class LakeLogParser {
       BufferedReader br = new BufferedReader(new FileReader(file));
       String line;
 
-      int max = Integer.MIN_VALUE;
+      int maxFrameSize = Integer.MIN_VALUE;
+      int maxRegen = Integer.MIN_VALUE;
 
       ArrayList<Integer> times = new ArrayList<Integer>();
       ArrayList<Double> timesDouble = new ArrayList<Double>();
@@ -80,7 +81,7 @@ public class LakeLogParser {
 
       while ((line = br.readLine()) != null) {
         parts = line.split(",");
-        if (parts.length != 3) {
+        if (parts.length != 4) {
           continue;
         }
 
@@ -88,8 +89,12 @@ public class LakeLogParser {
         timesDouble.add(Double.parseDouble(parts[0]));
         timeSpents.add(Double.parseDouble(parts[1]));
         int m = Integer.parseInt(parts[2]);
-        if (m > max) {
-          max = m;
+        if (m > maxFrameSize) {
+          maxFrameSize = m;
+        }
+        m = Integer.parseInt(parts[3]);
+        if (m > maxRegen) {
+          maxRegen = m;
         }
       }
       
@@ -103,19 +108,14 @@ public class LakeLogParser {
       Collections.sort(times);
       Collections.sort(timesDouble);
       Collections.sort(timeSpents);
-      
-//      .write("config size,real max size,rate,sent times,"
-//          + "num of samples,"
-//          + "times(max),times(min),"
-//          + "times(median),times(mean),times(SD),"
-//          + "time spent(max),time spent(min),"
-//          + "time spent(median),time spent(mean),time spent(SD)\n");
-      
+
       builder.setLength(0);
-      builder.append(bytes).append(",").append(max).append(",").append(rate)
-          .append(",").append(maxretry + 1)
-          .append(",").append(times.size()).append(",")
-          
+      builder.append(bytes).append(",")
+          .append(rate).append(",")
+          .append(maxretry + 1).append(",").append(times.size()).append(",")
+          .append(maxFrameSize).append(",")
+          .append(maxRegen).append(",")
+
           .append(times.get(times.size() - 1)).append(",")
           .append(times.get(0)).append(",")
           .append(getMedian(timesDouble)).append(",")

@@ -39,13 +39,14 @@ public class StreamLogParser {
     StringBuilder builder = new StringBuilder();
     try {
       writer
-          .write("config size,real max size,rate,sent times,"
-              + "sent frames,num of samples,received message(max),received message(min),"
-              + "received message(median),received message(mean),received message(SD),"
-              + "completion ratio(max),completion ratio(min),"
-              + "completion ratio(median),completion ratio(mean),completion ratio(SD),"
-              + "time spent(max),time spent(min),"
-              + "time spent(median),time spent(mean),time spent(SD)\n");
+          .write("config_size,cps,sent_times,"
+              + "sent_frames,num_of_samples,actual_max_frame_size,regenerate_times,"
+              + "received_message(max),received_message(min),"
+              + "received_message(median),received_message(mean),received_message(SD),"
+              + "completion_ratio(max),completion ratio(min),"
+              + "completion_ratio(median),completion_ratio(mean),completion_ratio(SD),"
+              + "time_spent(max),time_spent(min),"
+              + "time_spent(median),time_spent(mean),time_spent(SD)\n");
     } catch (IOException e1) {
       e1.printStackTrace();
     }
@@ -73,7 +74,9 @@ public class StreamLogParser {
       BufferedReader br = new BufferedReader(new FileReader(file));
       String line;
 
-      int max = Integer.MIN_VALUE;
+      int maxFrameSize = Integer.MIN_VALUE;
+      int maxRegen = Integer.MIN_VALUE;
+
       int sent = 0;
 
       ArrayList<Integer> receiveds = new ArrayList<Integer>();
@@ -83,7 +86,7 @@ public class StreamLogParser {
 
       while ((line = br.readLine()) != null) {
         parts = line.split(",");
-        if (parts.length != 5) {
+        if (parts.length != 6) {
           continue;
         }
 
@@ -93,10 +96,13 @@ public class StreamLogParser {
         completions.add(Double.parseDouble(parts[2]));
         timeSpents.add(Double.parseDouble(parts[3]));
         int m = Integer.parseInt(parts[4]);
-        if (m > max) {
-          max = m;
+        if (m > maxFrameSize) {
+          maxFrameSize = m;
         }
-
+        m = Integer.parseInt(parts[5]);
+        if (m > maxRegen) {
+          maxRegen = m;
+        }
       }
       
       try {
@@ -111,8 +117,9 @@ public class StreamLogParser {
       Collections.sort(completions);
       Collections.sort(timeSpents);
       
-//      .write("config size,real max size,rate,sent times,"
-//          + "sent frames,num of samples,received message(max),received message(min),"
+//      .write("config_size,cps,sent_times,"
+//          + "sent_frames,num_of_samples,actual_max_frame_size,regenerate_times,"
+//          + "received message(max),received message(min),"
 //          + "received message(median),received message(mean),received message(SD),"
 //          + "completion ratio(max),completion ratio(min),"
 //          + "completion ratio(median),completion ratio(mean),completion ratio(SD),"
@@ -120,9 +127,12 @@ public class StreamLogParser {
 //          + "time spent(median),time spent(mean),time spent(SD)\n");
       
       builder.setLength(0);
-      builder.append(bytes).append(",").append(max).append(",").append(rate)
-          .append(",").append(maxretry + 1).append(",").append(sent)
+      builder.append(bytes).append(",")
+          .append(rate).append(",")
+          .append(maxretry + 1).append(",").append(sent)
           .append(",").append(receiveds.size()).append(",")
+          .append(maxFrameSize).append(",")
+          .append(maxRegen).append(",")
           
           .append(receiveds.get(receiveds.size() - 1)).append(",")
           .append(receiveds.get(0)).append(",")
